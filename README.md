@@ -1,5 +1,7 @@
 # C++ project to set up bamboo and sonar
 
+## Objective: 
+
 ## In your Bamboo plan, add tasks:
 - Script Task - Compile C++ APP with Build Wrapper
 
