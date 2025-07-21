@@ -1,17 +1,37 @@
 name: Trigger Bamboo Build
 
 on:
-    push:
-        branches:
-            - main # or your desired branch
+  push:
+    branches:
+      - main   # or your desired branch
 
 jobs:
-    trigger-bamboo:
-        runs-on: ubuntu -latest
+  trigger-bamboo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      checks: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        steps:
-            - name: Trigger Bamboo Build Via REST API
-              run:  |
-                curl -X POST "${{ secrets.BAMBOO_URL }}/rest/api/latest/queue/${{ secrets.BAMBOO_PLAN_KEY }}" \
-                -H "Authorization: Bearar ${{ secrets.BAMBOO_TOKEN }}" \
-                -H "Content-Type: application/json"
+      - name: Trigger Bamboo Build via REST API
+        env:
+          BAMBOO_URL: ${{ secrets.BAMBOO_URL }}      # e.g., https://bamboo.example.com
+          BAMBOO_PLAN_KEY: ${{ secrets.PLAN_KEY }}     # e.g., CPP-TEST
+          BAMBOO_TOKEN: ${{ secrets.BAMBOO_TOKEN }}     # Bearer token or Basic auth token
+        run: |
+          echo "Triggering Bamboo build for plan $BAMBOO_PLAN_KEY..."
+
+          RESPONSE=$(curl -s -w "%{http_code}" -o response.txt -X POST \ "$BAMBOO_URL/rest/api/latest/queue/$BAMBOO_PLAN_KEY" \ -H "Authorization: Bearer $BAMBOO_TOKEN" \ -H "Content-Type: application/json")
+
+          echo "Bamboo response:"
+          cat response.text
+          echo "HTTP Status: $RESPONSE"      # Check if the trigger was successful
+          if [ "$RESPONSE" -ne 200 ] && [ "$RESPONSE" -ne 202]; then
+            echo "Bamboo trigger failed with HTTP status $RESPONSE"
+            exit 1
+          else
+              echo "Bamboo build triggered successfully!"
+          fi
