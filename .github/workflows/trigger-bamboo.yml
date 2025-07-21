@@ -1,0 +1,17 @@
+name: Trigger Bamboo Build
+
+on:
+    push:
+        branches:
+            - main # or your desired branch
+
+jobs:
+    trigger-bamboo:
+        runs-on: ubuntu -latest
+
+        steps:
+            - name: Trigger Bamboo Build Via REST API
+              run:  |
+                curl -X POST "${{ secrets.BAMBOO_URL }}/rest/api/latest/queue/${{ secrets.BAMBOO_PLAN_KEY }}" \
+                -H "Authorization: Bearar ${{ secrets.BAMBOO_TOKEN }}" \
+                -H "Content-Type: application/json"
